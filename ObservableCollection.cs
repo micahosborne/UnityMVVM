@@ -23,7 +23,6 @@
 //	Chris Toshok (toshok@novell.com)
 //	Brian O'Keefe (zer0keefie@gmail.com)
 //
-#if NET_4_0
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -183,4 +182,3 @@ namespace System.Collections.ObjectModel
 		}
 	}
 }
-#endif
