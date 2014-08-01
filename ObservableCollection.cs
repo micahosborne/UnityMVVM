@@ -26,12 +26,10 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace System.Collections.ObjectModel
 {
 	[Serializable]
-	[TypeForwardedFrom (Consts.WindowsBase_3_0)]
 	public class ObservableCollection<T> : Collection<T>, INotifyCollectionChanged, INotifyPropertyChanged {
 
 		private class Reentrant : IDisposable {
