@@ -1,12 +1,17 @@
-using System;
-using System.ComponentModel;
+﻿#if !NETFX_CORE
 
-using System;
+namespace System.Windows.Input
+{
+    using System;
 
-namespace System.Windows.Input {
-	public interface ICommand {
-		bool CanExecute (object parameter);
-		void Execute (object parameter);
-		event EventHandler CanExecuteChanged;
-	}
+    public interface ICommand
+    {
+        event EventHandler CanExecuteChanged;
+
+        bool CanExecute(object parameter);
+
+        void Execute(object parameter);
+    }
 }
+
+#endif
