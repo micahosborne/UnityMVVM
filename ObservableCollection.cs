@@ -1,4 +1,4 @@
-#if !NETFX_CORE
+﻿#if !NETFX_CORE
 
 using System;
 using System.Collections;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
- 
+
 namespace System.Collections.ObjectModel
 {
     /// <summary>
@@ -21,13 +21,13 @@ namespace System.Collections.ObjectModel
         //  Constructors
         //
         //------------------------------------------------------
- 
+
         #region Constructors
         /// <summary>
         /// Initializes a new instance of ObservableCollection that is empty and has default initial capacity.
         /// </summary>
         public ObservableCollection() : base() { }
- 
+
         /// <summary>
         /// Initializes a new instance of the ObservableCollection class
         /// that contains elements copied from the specified list
@@ -48,7 +48,7 @@ namespace System.Collections.ObjectModel
             // 
             CopyFrom(list);
         }
- 
+
         /// <summary>
         /// Initializes a new instance of the ObservableCollection class that contains
         /// elements copied from the specified collection and has sufficient capacity
@@ -64,10 +64,10 @@ namespace System.Collections.ObjectModel
         {
             if (collection == null)
                 throw new ArgumentNullException("collection");
- 
+
             CopyFrom(collection);
         }
- 
+
         private void CopyFrom(IEnumerable<T> collection)
         {
             IList<T> items = Items;
@@ -82,18 +82,18 @@ namespace System.Collections.ObjectModel
                 }
             }
         }
- 
+
         #endregion Constructors
- 
- 
+
+
         //------------------------------------------------------
         //
         //  Public Methods
         //
         //------------------------------------------------------
- 
+
         #region Public Methods
- 
+
         /// <summary>
         /// Move item at oldIndex to newIndex.
         /// </summary>
@@ -101,37 +101,26 @@ namespace System.Collections.ObjectModel
         {
             MoveItem(oldIndex, newIndex);
         }
- 
+
         #endregion Public Methods
- 
- 
+
+
         //------------------------------------------------------
         //
         //  Public Events
         //
         //------------------------------------------------------
- 
+
         #region Public Events
- 
+
         //------------------------------------------------------
-        #region INotifyPropertyChanged implementation
         /// <summary>
         /// PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
         /// </summary>
-        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-        {
-            add
-            {
-                PropertyChanged += value;
-            }
-            remove
-            {
-                PropertyChanged -= value;
-            }
-        }
-        #endregion INotifyPropertyChanged implementation
- 
- 
+        public virtual event PropertyChangedEventHandler PropertyChanged;
+
+
+
         //------------------------------------------------------
         /// <summary>
         /// Occurs when the collection changes, either by adding or removing an item.
@@ -140,18 +129,18 @@ namespace System.Collections.ObjectModel
         /// see <seealso cref="INotifyCollectionChanged"/>
         /// </remarks>
         public virtual event NotifyCollectionChangedEventHandler CollectionChanged;
- 
+
         #endregion Public Events
- 
- 
+
+
         //------------------------------------------------------
         //
         //  Protected Methods
         //
         //------------------------------------------------------
- 
+
         #region Protected Methods
- 
+
         /// <summary>
         /// Called by base class Collection&lt;T&gt; when the list is being cleared;
         /// raises a CollectionChanged event to any listeners.
@@ -164,7 +153,7 @@ namespace System.Collections.ObjectModel
             OnPropertyChanged(IndexerName);
             OnCollectionReset();
         }
- 
+
         /// <summary>
         /// Called by base class Collection&lt;T&gt; when an item is removed from list;
         /// raises a CollectionChanged event to any listeners.
@@ -172,15 +161,15 @@ namespace System.Collections.ObjectModel
         protected override void RemoveItem(int index)
         {
             CheckReentrancy();
-            T removedItem  = this[index];
- 
+            T removedItem = this[index];
+
             base.RemoveItem(index);
- 
+
             OnPropertyChanged(CountString);
             OnPropertyChanged(IndexerName);
             OnCollectionChanged(NotifyCollectionChangedAction.Remove, removedItem, index);
         }
- 
+
         /// <summary>
         /// Called by base class Collection&lt;T&gt; when an item is added to list;
         /// raises a CollectionChanged event to any listeners.
@@ -189,12 +178,12 @@ namespace System.Collections.ObjectModel
         {
             CheckReentrancy();
             base.InsertItem(index, item);
- 
+
             OnPropertyChanged(CountString);
             OnPropertyChanged(IndexerName);
             OnCollectionChanged(NotifyCollectionChangedAction.Add, item, index);
         }
- 
+
         /// <summary>
         /// Called by base class Collection&lt;T&gt; when an item is set in list;
         /// raises a CollectionChanged event to any listeners.
@@ -204,11 +193,11 @@ namespace System.Collections.ObjectModel
             CheckReentrancy();
             T originalItem = this[index];
             base.SetItem(index, item);
- 
+
             OnPropertyChanged(IndexerName);
             OnCollectionChanged(NotifyCollectionChangedAction.Replace, originalItem, item, index);
         }
- 
+
         /// <summary>
         /// Called by base class ObservableCollection&lt;T&gt; when an item is to be moved within the list;
         /// raises a CollectionChanged event to any listeners.
@@ -216,17 +205,17 @@ namespace System.Collections.ObjectModel
         protected virtual void MoveItem(int oldIndex, int newIndex)
         {
             CheckReentrancy();
- 
+
             T removedItem = this[oldIndex];
- 
+
             base.RemoveItem(oldIndex);
             base.InsertItem(newIndex, removedItem);
- 
+
             OnPropertyChanged(IndexerName);
             OnCollectionChanged(NotifyCollectionChangedAction.Move, removedItem, newIndex, oldIndex);
         }
- 
- 
+
+
         /// <summary>
         /// Raises a PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
         /// </summary>
@@ -237,12 +226,7 @@ namespace System.Collections.ObjectModel
                 PropertyChanged(this, e);
             }
         }
- 
-        /// <summary>
-        /// PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
-        /// </summary>
-        protected virtual event PropertyChangedEventHandler PropertyChanged;
- 
+
         /// <summary>
         /// Raise CollectionChanged event to any listeners.
         /// Properties/methods modifying this ObservableCollection will raise
@@ -262,7 +246,7 @@ namespace System.Collections.ObjectModel
                 }
             }
         }
- 
+
         /// <summary>
         /// Disallow reentrant attempts to change this collection. E.g. a event handler
         /// of the CollectionChanged event is not allowed to make changes to this collection.
@@ -281,7 +265,7 @@ namespace System.Collections.ObjectModel
             _monitor.Enter();
             return _monitor;
         }
- 
+
         /// <summary> Check and assert for reentrant attempts to change this collection. </summary>
         /// <exception cref="InvalidOperationException"> raised when changing the collection
         /// while another collection change is still being notified to other listeners </exception>
@@ -294,19 +278,19 @@ namespace System.Collections.ObjectModel
                 // invalid for later listeners.  This keeps existing code working
                 // (e.g. Selector.SelectedItems).
                 if ((CollectionChanged != null) && (CollectionChanged.GetInvocationList().Length > 1))
-                    throw new InvalidOperationException ("Cannot modify the collection while reentrancy is blocked.");
+                    throw new InvalidOperationException("Cannot modify the collection while reentrancy is blocked.");
             }
         }
- 
+
         #endregion Protected Methods
- 
- 
+
+
         //------------------------------------------------------
         //
         //  Private Methods
         //
         //------------------------------------------------------
- 
+
         #region Private Methods
         /// <summary>
         /// Helper to raise a PropertyChanged event  />).
@@ -315,7 +299,7 @@ namespace System.Collections.ObjectModel
         {
             OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
- 
+
         /// <summary>
         /// Helper to raise CollectionChanged event to any listeners
         /// </summary>
@@ -323,7 +307,7 @@ namespace System.Collections.ObjectModel
         {
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index));
         }
- 
+
         /// <summary>
         /// Helper to raise CollectionChanged event to any listeners
         /// </summary>
@@ -331,7 +315,7 @@ namespace System.Collections.ObjectModel
         {
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, item, index, oldIndex));
         }
- 
+
         /// <summary>
         /// Helper to raise CollectionChanged event to any listeners
         /// </summary>
@@ -339,7 +323,7 @@ namespace System.Collections.ObjectModel
         {
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(action, newItem, oldItem, index));
         }
- 
+
         /// <summary>
         /// Helper to raise CollectionChanged event with action == Reset to any listeners
         /// </summary>
@@ -348,51 +332,51 @@ namespace System.Collections.ObjectModel
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
         #endregion Private Methods
- 
+
         //------------------------------------------------------
         //
         //  Private Types
         //
         //------------------------------------------------------
- 
+
         #region Private Types
- 
+
         // this class helps prevent reentrant calls
         private class SimpleMonitor : IDisposable
         {
             public void Enter()
             {
-                ++ _busyCount;
+                ++_busyCount;
             }
- 
+
             public void Dispose()
             {
-                -- _busyCount;
+                --_busyCount;
             }
- 
+
             public bool Busy { get { return _busyCount > 0; } }
- 
+
             int _busyCount;
         }
- 
+
         #endregion Private Types
- 
+
         //------------------------------------------------------
         //
         //  Private Fields
         //
         //------------------------------------------------------
- 
+
         #region Private Fields
- 
+
         private const string CountString = "Count";
- 
+
         // This must agree with Binding.IndexerName.  It is declared separately
         // here so as to avoid a dependency on PresentationFramework.dll.
         private const string IndexerName = "Item[]";
- 
+
         private SimpleMonitor _monitor = new SimpleMonitor();
- 
+
         #endregion Private Fields
     }
 }
