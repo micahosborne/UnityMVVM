@@ -1,85 +1,93 @@
-﻿#if !NETFX_CORE
+//---------------------------------------------------------------------------
+//
+// <copyright file="NotifyCollectionChangedEventArgs.cs" company="Microsoft">
+//    Copyright (C) Microsoft Corporation.  All rights reserved.
+// </copyright>
+//
+// Description: NotifyCollectionChanged event arguments
+//
+// Specs:       http://avalon/connecteddata/Specs/INotifyCollectionChanged.mht
+//
+//---------------------------------------------------------------------------
+
+// Adapted for Unity
+
+#if !NETFX_CORE
 
 namespace System.Collections.Specialized
 {
-    /// <summary>Describes the action that caused a CollectionChanged event. </summary>
+    /// <summary>
+    /// This enum describes the action that caused a CollectionChanged event.
+    /// </summary>
     public enum NotifyCollectionChangedAction
     {
-        /// <summary>One or more items were added to the collection.</summary>
+        /// <summary> One or more items were added to the collection. </summary>
         Add,
-        /// <summary>One or more items were removed from the collection.</summary>
+
+        /// <summary> One or more items were removed from the collection. </summary>
         Remove,
-        /// <summary>One or more items were replaced in the collection.</summary>
+
+        /// <summary> One or more items were replaced in the collection. </summary>
         Replace,
-        /// <summary>One or more items were moved within the collection.</summary>
+
+        /// <summary> One or more items were moved within the collection. </summary>
         Move,
-        /// <summary>The content of the collection changed dramatically.</summary>
-        Reset
+
+        /// <summary> The contents of the collection changed dramatically. </summary>
+        Reset,
     }
 
-	/// <summary>Provides data for the CollectionChanged event.</summary>
+    /// <summary>
+    /// Arguments for the CollectionChanged event.
+    /// A collection that supports INotifyCollectionChangedThis raises this event
+    /// whenever an item is added or removed, or when the contents of the collection
+    /// changes dramatically.
+    /// </summary>
     public class NotifyCollectionChangedEventArgs : EventArgs
     {
-        #region Properties
-        /// <summary>Gets the action that caused the event. </summary>
-        /// <returns>A NotifyCollectionChangedAction value that describes the action that caused the event.</returns>
-        public NotifyCollectionChangedAction Action
-        {
-            get { return action; }
-        }
+        //------------------------------------------------------
+        //
+        //  Constructors
+        //
+        //------------------------------------------------------
 
-        /// <summary>Gets the new item involved in the change.</summary>
-        /// <returns>The new item involved in the change.</returns>
-        public IList NewItems
-        {
-            get { return newItems; }
-        }
-
-        /// <summary>Gets the item affected by a Replace, Remove, or Move action.</summary>
-        /// <returns>The item affected by a Replace, Remove, or Move action.</returns>
-        public IList OldItems
-        {
-            get { return oldItems; }
-        }
-
-        /// <summary>Gets the index at which the change occurred.</summary>
-        /// <returns>The zero-based index at which the change occurred.</returns>
-        public int NewStartingIndex
-        {
-            get { return newIndex; }
-        }
-
-        /// <summary>Gets the index at which a Move, Remove, or Replace action occurred.</summary>
-        /// <returns>The zero-based index at which a Move Remove, or Replace action occurred.</returns>
-        public int OldStartingIndex
-        {
-            get { return oldIndex; }
-        }
-        #endregion    
-    
-        #region Constructors
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a reset change.
         /// </summary>
         /// <param name="action">The action that caused the event (must be Reset).</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action)
         {
-            this.action = action;
             if (action != NotifyCollectionChangedAction.Reset)
                 throw new ArgumentException("This constructor can only be used with the Reset action.", "action");
+
+            InitializeAdd(action, null, -1);
         }
-        
+
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item change.
         /// </summary>
         /// <param name="action">The action that caused the event; can only be Reset, Add or Remove action.</param>
         /// <param name="changedItem">The item affected by the change.</param>
-		public NotifyCollectionChangedEventArgs (NotifyCollectionChangedAction action, object changedItem)
-			: this (action, changedItem, -1)
-		{
-		}
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem)
+        {
+            if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
+                    && (action != NotifyCollectionChangedAction.Reset))
+                throw new ArgumentException("This constructor can only be used with the Reset, Add, or Remove actions.", "action");
 
-		/// <summary>
+            if (action == NotifyCollectionChangedAction.Reset)
+            {
+                if (changedItem != null)
+                    throw new ArgumentException("This constructor can only be used with the Reset action if changedItem is null", "action");
+
+                InitializeAdd(action, null, -1);
+            }
+            else
+            {
+                InitializeAddOrRemove(action, new object[] { changedItem }, -1);
+            }
+        }
+
+        /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item change.
         /// </summary>
         /// <param name="action">The action that caused the event.</param>
@@ -87,56 +95,97 @@ namespace System.Collections.Specialized
         /// <param name="index">The index where the change occurred.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem, int index)
         {
-            IList changedItems = new object[] { changedItem };
-            this.action = action;
-            if (action == NotifyCollectionChangedAction.Add)
-                InitializeAdd(changedItems, index);
-            else if (action == NotifyCollectionChangedAction.Remove)
-                InitializeRemove(changedItems, index);
-            else if (action == NotifyCollectionChangedAction.Reset)
+            if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
+                    && (action != NotifyCollectionChangedAction.Reset))
+                throw new ArgumentException("This constructor can only be used with the Reset, Add, or Remove actions.", "action");
+
+            if (action == NotifyCollectionChangedAction.Reset)
             {
                 if (changedItem != null)
-                    throw new ArgumentException("This constructor can only be used with the Reset action if changedItem is null", "changedItem");
+                    throw new ArgumentException("This constructor can only be used with the Reset action if changedItem is null", "action");
                 if (index != -1)
-                    throw new ArgumentException("This constructor can only be used with the Reset action if index is -1", "index");
+                    throw new ArgumentException("This constructor can only be used with the Reset action if index is -1", "action");
+
+                InitializeAdd(action, null, -1);
             }
             else
             {
-                throw new ArgumentException("This constructor can only be used with the Reset, Add, or Remove actions.", "action");
+                InitializeAddOrRemove(action, new object[] { changedItem }, index);
             }
-        }		
-        
+        }
+
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item change.
         /// </summary>
         /// <param name="action">The action that caused the event.</param>
         /// <param name="changedItems">The items affected by the change.</param>
-        public NotifyCollectionChangedEventArgs (NotifyCollectionChangedAction action, IList changedItems)
-			: this (action, changedItems, -1)
-		{
-		}
-        
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList changedItems)
+        {
+            if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
+                    && (action != NotifyCollectionChangedAction.Reset))
+                throw new ArgumentException("This constructor can only be used with the Reset, Add, or Remove actions.", "action");
+
+            if (action == NotifyCollectionChangedAction.Reset)
+            {
+                if (changedItems != null)
+                    throw new ArgumentException("This constructor can only be used with the Reset action if changedItem is null", "action");
+
+                InitializeAdd(action, null, -1);
+            }
+            else
+            {
+                if (changedItems == null)
+                    throw new ArgumentNullException("changedItems");
+
+                InitializeAddOrRemove(action, changedItems, -1);
+            }
+        }
+
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item change (or a reset).
         /// </summary>
         /// <param name="action">The action that caused the event.</param>
         /// <param name="changedItems">The items affected by the change.</param>
         /// <param name="startingIndex">The index where the change occurred.</param>
-        public NotifyCollectionChangedEventArgs (NotifyCollectionChangedAction action, IList changedItems, int startingIndex)
-			: this (action, changedItems, startingIndex)
-		{
-		}
-        
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList changedItems, int startingIndex)
+        {
+            if ((action != NotifyCollectionChangedAction.Add) && (action != NotifyCollectionChangedAction.Remove)
+                    && (action != NotifyCollectionChangedAction.Reset))
+                throw new ArgumentException("This constructor can only be used with the Reset, Add, or Remove actions.", "action");
+
+            if (action == NotifyCollectionChangedAction.Reset)
+            {
+                if (changedItems != null)
+                    throw new ArgumentException("This constructor can only be used with the Reset action if changedItem is null", "action");
+                if (startingIndex != -1)
+                    throw new ArgumentException("This constructor can only be used with the Reset action if index is -1", "action");
+
+                InitializeAdd(action, null, -1);
+            }
+            else
+            {
+                if (changedItems == null)
+                    throw new ArgumentNullException("changedItems");
+                if (startingIndex < -1)
+                    throw new ArgumentException("The value of index must be -1 or greater.", "startingIndex");
+
+                InitializeAddOrRemove(action, changedItems, startingIndex);
+            }
+        }
+
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item Replace event.
         /// </summary>
         /// <param name="action">Can only be a Replace action.</param>
         /// <param name="newItem">The new item replacing the original item.</param>
-        /// <param name="oldItem">The original item that is replaced.</param>        
-       	public NotifyCollectionChangedEventArgs (NotifyCollectionChangedAction action, object newItem, object oldItem)
-			: this (action, newItem, oldItem, -1)
-		{
-		}        
+        /// <param name="oldItem">The original item that is replaced.</param>
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object newItem, object oldItem)
+        {
+            if (action != NotifyCollectionChangedAction.Replace)
+                throw new ArgumentException("This constructor can only be used with the Replace action.", "action");
+
+            InitializeMoveOrReplace(action, new object[] { newItem }, new object[] { oldItem }, -1, -1);
+        }
 
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item Replace event.
@@ -147,34 +196,50 @@ namespace System.Collections.Specialized
         /// <param name="index">The index of the item being replaced.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object newItem, object oldItem, int index)
         {
-            this.action = action;
             if (action != NotifyCollectionChangedAction.Replace)
                 throw new ArgumentException("This constructor can only be used with the Replace action.", "action");
-            InitializeReplace(new object[] { newItem }, new object[] { oldItem }, index);
+
+            int oldStartingIndex = index;
+
+            InitializeMoveOrReplace(action, new object[] { newItem }, new object[] { oldItem }, index, oldStartingIndex);
         }
-        
+
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item Replace event.
         /// </summary>
         /// <param name="action">Can only be a Replace action.</param>
         /// <param name="newItems">The new items replacing the original items.</param>
         /// <param name="oldItems">The original items that are replaced.</param>
-		public NotifyCollectionChangedEventArgs (NotifyCollectionChangedAction action, IList newItems, IList oldItems)
-			: this (action, newItems, oldItems, -1)
-		{
-		}
-		
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList newItems, IList oldItems)
+        {
+            if (action != NotifyCollectionChangedAction.Replace)
+                throw new ArgumentException("This constructor can only be used with the Replace action.", "action");
+            if (newItems == null)
+                throw new ArgumentNullException("newItems");
+            if (oldItems == null)
+                throw new ArgumentNullException("oldItems");
+
+            InitializeMoveOrReplace(action, newItems, oldItems, -1, -1);
+        }
+
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a multi-item Replace event.
         /// </summary>
         /// <param name="action">Can only be a Replace action.</param>
         /// <param name="newItems">The new items replacing the original items.</param>
         /// <param name="oldItems">The original items that are replaced.</param>
-        /// <param name="startingIndex">The starting index of the items being replaced.</param>		
-		public NotifyCollectionChangedEventArgs (NotifyCollectionChangedAction action, IList newItems, IList oldItems, int startingIndex)
-			: this (action, newItems, oldItems, startingIndex)
-		{
-		}
+        /// <param name="startingIndex">The starting index of the items being replaced.</param>
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList newItems, IList oldItems, int startingIndex)
+        {
+            if (action != NotifyCollectionChangedAction.Replace)
+                throw new ArgumentException("This constructor can only be used with the Replace action.", "action");
+            if (newItems == null)
+                throw new ArgumentNullException("newItems");
+            if (oldItems == null)
+                throw new ArgumentNullException("oldItems");
+
+            InitializeMoveOrReplace(action, newItems, oldItems, startingIndex, startingIndex);
+        }
 
         /// <summary>
         /// Construct a NotifyCollectionChangedEventArgs that describes a one-item Move event.
@@ -183,9 +248,15 @@ namespace System.Collections.Specialized
         /// <param name="changedItem">The item affected by the change.</param>
         /// <param name="index">The new index for the changed item.</param>
         /// <param name="oldIndex">The old index for the changed item.</param>
-		public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem, int index, int oldIndex)
-            : this(action, new object[] { changedItem }, index, oldIndex)
+        public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, object changedItem, int index, int oldIndex)
         {
+            if (action != NotifyCollectionChangedAction.Move)
+                throw new ArgumentException("This constructor can only be used with the Move action.", "action");
+            if (index < 0)
+                throw new ArgumentException("The value of index must be -1 or greater.", "index");
+
+            object[] changedItems = new object[] { changedItem };
+            InitializeMoveOrReplace(action, changedItems, changedItems, index, oldIndex);
         }
 
         /// <summary>
@@ -194,15 +265,15 @@ namespace System.Collections.Specialized
         /// <param name="action">The action that caused the event.</param>
         /// <param name="changedItems">The items affected by the change.</param>
         /// <param name="index">The new index for the changed items.</param>
-        /// <param name="oldIndex">The old index for the changed items.</param>		
+        /// <param name="oldIndex">The old index for the changed items.</param>
         public NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList changedItems, int index, int oldIndex)
         {
-            this.action = action;
             if (action != NotifyCollectionChangedAction.Move)
                 throw new ArgumentException("This constructor can only be used with the Move action.", "action");
-            if (index < -1)
+            if (index < 0)
                 throw new ArgumentException("The value of index must be -1 or greater.", "index");
-            InitializeMove(changedItems, index, oldIndex);
+
+            InitializeMoveOrReplace(action, changedItems, changedItems, index, oldIndex);
         }
 
         /// <summary>
@@ -210,52 +281,105 @@ namespace System.Collections.Specialized
         /// </summary>
         internal NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction action, IList newItems, IList oldItems, int newIndex, int oldIndex)
         {
-            this.action = action;            
-            this.newItems = (newItems == null) ? null : ArrayList.ReadOnly(newItems);            
-            this.oldItems = (oldItems == null) ? null : ArrayList.ReadOnly(oldItems);
-            this.newIndex = newIndex;
-            this.oldIndex = oldIndex;
+            _action = action;
+            _newItems = (newItems == null) ? null : ArrayList.ReadOnly(newItems);
+            _oldItems = (oldItems == null) ? null : ArrayList.ReadOnly(oldItems);
+            _newStartingIndex = newIndex;
+            _oldStartingIndex = oldIndex;
         }
 
-        #endregion
-
-        #region Initialize Methods
-        private void InitializeAdd(IList items, int index)
+        private void InitializeAddOrRemove(NotifyCollectionChangedAction action, IList changedItems, int startingIndex)
         {
-            this.newItems = ArrayList.ReadOnly(items);
-            this.newIndex = index;
+            if (action == NotifyCollectionChangedAction.Add)
+                InitializeAdd(action, changedItems, startingIndex);
+            else if (action == NotifyCollectionChangedAction.Remove)
+                InitializeRemove(action, changedItems, startingIndex);
+            else
+                throw new ArgumentException("This method must be used with the Add or Remove action.", "action");
         }
 
-        private void InitializeRemove(IList items, int index)
+        private void InitializeAdd(NotifyCollectionChangedAction action, IList newItems, int newStartingIndex)
         {
-            this.oldItems = ArrayList.ReadOnly(items);
-            this.oldIndex = index;
+            _action = action;
+            _newItems = (newItems == null) ? null : ArrayList.ReadOnly(newItems);
+            _newStartingIndex = newStartingIndex;
         }
 
-        private void InitializeMove(IList changedItems, int newItemIndex, int oldItemIndex)
+        private void InitializeRemove(NotifyCollectionChangedAction action, IList oldItems, int oldStartingIndex)
         {
-            InitializeAdd(changedItems, newItemIndex);
-            InitializeRemove(changedItems, oldItemIndex);
+            _action = action;
+            _oldItems = (oldItems == null) ? null : ArrayList.ReadOnly(oldItems);
+            _oldStartingIndex = oldStartingIndex;
         }
 
-        private void InitializeReplace(IList addedItems, IList removedItems, int index)
+        private void InitializeMoveOrReplace(NotifyCollectionChangedAction action, IList newItems, IList oldItems, int startingIndex, int oldStartingIndex)
         {
-            InitializeAdd(addedItems, index);
-            InitializeRemove(removedItems, index);
+            InitializeAdd(action, newItems, startingIndex);
+            InitializeRemove(action, oldItems, oldStartingIndex);
         }
-        #endregion
 
-        #region Private members
-        private NotifyCollectionChangedAction action;
-        private IList oldItems, newItems;
-        private int oldIndex = -1, newIndex = -1;
-        #endregion
+        //------------------------------------------------------
+        //
+        //  Public Properties
+        //
+        //------------------------------------------------------
+
+        /// <summary>
+        /// The action that caused the event.
+        /// </summary>
+        public NotifyCollectionChangedAction Action
+        {
+            get { return _action; }
+        }
+
+        /// <summary>
+        /// The items affected by the change.
+        /// </summary>
+        public IList NewItems
+        {
+            get { return _newItems; }
+        }
+
+        /// <summary>
+        /// The old items affected by the change (for Replace events).
+        /// </summary>
+        public IList OldItems
+        {
+            get { return _oldItems; }
+        }
+
+        /// <summary>
+        /// The index where the change occurred.
+        /// </summary>
+        public int NewStartingIndex
+        {
+            get { return _newStartingIndex; }
+        }
+
+        /// <summary>
+        /// The old index where the change occurred (for Move events).
+        /// </summary>
+        public int OldStartingIndex
+        {
+            get { return _oldStartingIndex; }
+        }
+
+        //------------------------------------------------------
+        //
+        //  Private Fields
+        //
+        //------------------------------------------------------
+
+        private NotifyCollectionChangedAction _action;
+        private IList _newItems, _oldItems;
+        private int _newStartingIndex = -1;
+        private int _oldStartingIndex = -1;
     }
 
-    /// <summary>Represents the method that handles the INotifyCollectionChanged.CollectionChanged event. </summary>
-    /// <param name="sender">The object that raised the event.</param>
-    /// <param name="e">Information about the event.</param>
-    public delegate void NotifyCollectionChangedEventHandler(object sender, NotifyCollectionChangedEventArgs e);    
+    /// <summary>
+    ///     The delegate to use for handlers that receive the CollectionChanged event.
+    /// </summary>
+    public delegate void NotifyCollectionChangedEventHandler(object sender, NotifyCollectionChangedEventArgs e);
 }
 
 #endif
