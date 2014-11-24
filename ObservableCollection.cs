@@ -1,19 +1,4 @@
-//---------------------------------------------------------------------------
-//
-// <copyright file="ObservableCollection.cs" company="Microsoft">
-//    Copyright (C) 2003 by Microsoft Corporation.  All rights reserved.
-// </copyright>
-//
-//
-// Description: Implementation of an Collection<T> implementing INotifyCollectionChanged
-//              to notify listeners of dynamic changes of the list.
-//
-// See spec at http://avalon/connecteddata/Specs/Collection%20Interfaces.mht
-//
-// History:
-//  11/22/2004 : [....] - created
-//
-//---------------------------------------------------------------------------
+﻿#if !NETFX_CORE
 
 using System;
 using System.Collections;
@@ -29,10 +14,6 @@ namespace System.Collections.ObjectModel
     /// implementing INotifyCollectionChanged to notify listeners
     /// when items get added, removed or the whole list is refreshed.
     /// </summary>
-#if !FEATURE_NETCORE
-    [Serializable()]
-    [TypeForwardedFrom("WindowsBase, Version=3.0.0.0, Culture=Neutral, PublicKeyToken=31bf3856ad364e35")]
-#endif
     public class ObservableCollection<T> : Collection<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {
         //------------------------------------------------------
@@ -133,22 +114,11 @@ namespace System.Collections.ObjectModel
         #region Public Events
 
         //------------------------------------------------------
-        #region INotifyPropertyChanged implementation
         /// <summary>
         /// PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
         /// </summary>
-        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-        {
-            add
-            {
-                PropertyChanged += value;
-            }
-            remove
-            {
-                PropertyChanged -= value;
-            }
-        }
-        #endregion INotifyPropertyChanged implementation
+        public virtual event PropertyChangedEventHandler PropertyChanged;
+
 
 
         //------------------------------------------------------
@@ -158,9 +128,6 @@ namespace System.Collections.ObjectModel
         /// <remarks>
         /// see <seealso cref="INotifyCollectionChanged"/>
         /// </remarks>
-#if !FEATURE_NETCORE
-        [field:NonSerializedAttribute()]
-#endif
         public virtual event NotifyCollectionChangedEventHandler CollectionChanged;
 
         #endregion Public Events
@@ -194,7 +161,7 @@ namespace System.Collections.ObjectModel
         protected override void RemoveItem(int index)
         {
             CheckReentrancy();
-            T removedItem  = this[index];
+            T removedItem = this[index];
 
             base.RemoveItem(index);
 
@@ -261,14 +228,6 @@ namespace System.Collections.ObjectModel
         }
 
         /// <summary>
-        /// PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
-        /// </summary>
-#if !FEATURE_NETCORE
-        [field:NonSerializedAttribute()]
-#endif
-        protected virtual event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
         /// Raise CollectionChanged event to any listeners.
         /// Properties/methods modifying this ObservableCollection will raise
         /// a collection changed event through this virtual method.
@@ -319,7 +278,7 @@ namespace System.Collections.ObjectModel
                 // invalid for later listeners.  This keeps existing code working
                 // (e.g. Selector.SelectedItems).
                 if ((CollectionChanged != null) && (CollectionChanged.GetInvocationList().Length > 1))
-                    throw new InvalidOperationException(SR.GetString(SR.ObservableCollectionReentrancyNotAllowed));
+                    throw new InvalidOperationException("Cannot modify the collection while reentrancy is blocked.");
             }
         }
 
@@ -383,20 +342,16 @@ namespace System.Collections.ObjectModel
         #region Private Types
 
         // this class helps prevent reentrant calls
-#if !FEATURE_NETCORE
-        [Serializable()]
-        [TypeForwardedFrom("WindowsBase, Version=3.0.0.0, Culture=Neutral, PublicKeyToken=31bf3856ad364e35")]
-#endif
         private class SimpleMonitor : IDisposable
         {
             public void Enter()
             {
-                ++ _busyCount;
+                ++_busyCount;
             }
 
             public void Dispose()
             {
-                -- _busyCount;
+                --_busyCount;
             }
 
             public bool Busy { get { return _busyCount > 0; } }
@@ -425,3 +380,5 @@ namespace System.Collections.ObjectModel
         #endregion Private Fields
     }
 }
+
+#endif
