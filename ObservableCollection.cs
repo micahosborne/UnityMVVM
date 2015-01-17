@@ -1,29 +1,11 @@
-//---------------------------------------------------------------------------
-//
-// <copyright file="ObservableCollection.cs" company="Microsoft">
-//    Copyright (C) 2003 by Microsoft Corporation.  All rights reserved.
-// </copyright>
-//
-//
-// Description: Implementation of an Collection<T> implementing INotifyCollectionChanged
-//              to notify listeners of dynamic changes of the list.
-//
-// See spec at http://avalon/connecteddata/Specs/Collection%20Interfaces.mht
-//
-// History:
-//  11/22/2004 : [....] - created
-//
-//---------------------------------------------------------------------------
-
-// Adapted for Unity
-
-#if !NETFX_CORE
+﻿#if !NETFX_CORE
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace System.Collections.ObjectModel
 {
@@ -41,14 +23,10 @@ namespace System.Collections.ObjectModel
         //------------------------------------------------------
 
         #region Constructors
-
         /// <summary>
         /// Initializes a new instance of ObservableCollection that is empty and has default initial capacity.
         /// </summary>
-        public ObservableCollection()
-            : base()
-        {
-        }
+        public ObservableCollection() : base() { }
 
         /// <summary>
         /// Initializes a new instance of the ObservableCollection class
@@ -67,7 +45,7 @@ namespace System.Collections.ObjectModel
             // We should be able to simply call the base(list) ctor.  But Collection<T>
             // doesn't copy the list (contrary to the documentation) - it uses the
             // list directly as its storage.  So we do the copying here.
-            //
+            // 
             CopyFrom(list);
         }
 
@@ -107,6 +85,7 @@ namespace System.Collections.ObjectModel
 
         #endregion Constructors
 
+
         //------------------------------------------------------
         //
         //  Public Methods
@@ -125,6 +104,7 @@ namespace System.Collections.ObjectModel
 
         #endregion Public Methods
 
+
         //------------------------------------------------------
         //
         //  Public Events
@@ -139,6 +119,8 @@ namespace System.Collections.ObjectModel
         /// </summary>
         public virtual event PropertyChangedEventHandler PropertyChanged;
 
+
+
         //------------------------------------------------------
         /// <summary>
         /// Occurs when the collection changes, either by adding or removing an item.
@@ -149,6 +131,7 @@ namespace System.Collections.ObjectModel
         public virtual event NotifyCollectionChangedEventHandler CollectionChanged;
 
         #endregion Public Events
+
 
         //------------------------------------------------------
         //
@@ -232,6 +215,7 @@ namespace System.Collections.ObjectModel
             OnCollectionChanged(NotifyCollectionChangedAction.Move, removedItem, newIndex, oldIndex);
         }
 
+
         /// <summary>
         /// Raises a PropertyChanged event (per <see cref="INotifyPropertyChanged" />).
         /// </summary>
@@ -300,6 +284,7 @@ namespace System.Collections.ObjectModel
 
         #endregion Protected Methods
 
+
         //------------------------------------------------------
         //
         //  Private Methods
@@ -307,7 +292,6 @@ namespace System.Collections.ObjectModel
         //------------------------------------------------------
 
         #region Private Methods
-
         /// <summary>
         /// Helper to raise a PropertyChanged event  />).
         /// </summary>
@@ -347,7 +331,6 @@ namespace System.Collections.ObjectModel
         {
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
-
         #endregion Private Methods
 
         //------------------------------------------------------
@@ -373,7 +356,7 @@ namespace System.Collections.ObjectModel
 
             public bool Busy { get { return _busyCount > 0; } }
 
-            private int _busyCount;
+            int _busyCount;
         }
 
         #endregion Private Types
